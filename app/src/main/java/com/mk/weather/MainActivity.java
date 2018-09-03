@@ -31,7 +31,6 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
     ArrayAdapter<City> adapter;
     List<City> existingCities;
     String city;
-    City shownCity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,16 +55,9 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                try {
-                    Dao<City, Integer> dao = getHelper().getCityDao();
-                    shownCity = dao.queryForId(position+1);
-                    //Log.d(TAG, shownCity.getName());
-                    city = shownCity.getName();
-                    //adapter.notifyDataSetChanged();
-                    loadCity();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                //Log.d(TAG, spinner.getSelectedItem().toString());
+                city = spinner.getSelectedItem().toString();
+                loadCity();
             }
             @Override
             public void onNothingSelected(AdapterView<?> arg0) {
