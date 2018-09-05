@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
@@ -25,6 +26,7 @@ import java.util.List;
 public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements GetRawData.OnDownloadComplete {
 
     private static final String TAG = "MainActivity";
+    private Toolbar toolbar;
     EditText cityName;
     TextView textView;
     Spinner spinner;
@@ -37,6 +39,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
         Log.d(TAG, "onCreate: starts");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        toolbar = findViewById(R.id.my_toolbar);
         cityName = findViewById(R.id.cityName);
         textView = findViewById(R.id.textView);
 

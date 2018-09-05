@@ -6,9 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <include
-        layout="@layout/toolbar"/>
-
     <EditText
         android:id="@+id/cityName"
         android:layout_width="150dp"
