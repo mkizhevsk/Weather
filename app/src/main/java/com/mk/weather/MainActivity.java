@@ -1,15 +1,28 @@
 package com.mk.weather;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
+import android.support.v7.app.AppCompatCallback;
+import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.view.ActionMode;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.Toolbar;
+import android.support.design.widget.Snackbar;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
@@ -23,13 +36,17 @@ import org.json.JSONObject;
 import java.sql.SQLException;
 import java.util.List;
 
-public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements GetRawData.OnDownloadComplete {
+public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>  implements GetRawData.OnDownloadComplete, AppCompatCallback {
 
+    private AppCompatDelegate delegate;
     private static final String TAG = "MainActivity";
+    ConstraintLayout constrLayout;
     private Toolbar toolbar;
+    final Context context = this;
     EditText cityName;
     TextView textView;
     Spinner spinner;
+    ProgressBar progressBar;
     ArrayAdapter<City> adapter;
     List<City> existingCities;
     String city;
@@ -38,11 +55,20 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: starts");
         super.onCreate(savedInstanceState);
+        setTitle(null);
         setContentView(R.layout.activity_main);
 
+        delegate = AppCompatDelegate.create(this, this);
+        delegate.onCreate(savedInstanceState);
+        delegate.setContentView(R.layout.activity_main);
+
+        constrLayout = findViewById(R.id.constrLayout);
         toolbar = findViewById(R.id.my_toolbar);
+        delegate.setSupportActionBar(toolbar);
         cityName = findViewById(R.id.cityName);
         textView = findViewById(R.id.textView);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(ProgressBar.VISIBLE);
 
         try {
             Dao<City, Integer> dao = getHelper().getCityDao();
@@ -73,14 +99,42 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
 
     }
 
-    public  void okButton(View view) {
-        city = cityName.getText().toString();
-        loadCity();
-        //Toast.makeText(getBaseContext(), city, Toast.LENGTH_SHORT).show();
+    public  boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.city_menu, menu);
+        return  true;
+
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        LayoutInflater nc = LayoutInflater.from(context);
+        View newCityView = nc.inflate(R.layout.new_city, null);
+        AlertDialog.Builder newCityDialogBuilder = new AlertDialog.Builder(context);
+        newCityDialogBuilder.setView(newCityView);
+        final EditText cityInput = newCityView.findViewById(R.id.input_city);
+        newCityDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                city = cityInput.getText().toString();
+                                loadCity();
+                            }
+                        })
+                .setNegativeButton("Отмена",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog createDialog = newCityDialogBuilder.create();
+        createDialog.show();
+        return super.onOptionsItemSelected(item);
 
     }
 
     public void loadCity() {
+        progressBar.setVisibility(ProgressBar.VISIBLE);
         GetRawData getRawData = new GetRawData(this);
         //getRawData.execute("https://api.openweathermap.org/data/2.5/weather?APPID=6e71959cff1c0c71a6049226d45c69a1&units=metric&id=2172797");
         getRawData.execute("https://api.openweathermap.org/data/2.5/weather?APPID=6e71959cff1c0c71a6049226d45c69a1&units=metric&q=" + city);
@@ -103,8 +157,16 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
                     Dao<City, Integer> dao = getHelper().getCityDao();
                     City newCity = new City(city);
                     dao.create(newCity);
-                    //dao.deleteById(3);
                     existingCities.add(newCity);
+                    int spinnerPosition = 0;
+                    int i = 0;
+                    for(City thisCity : existingCities) {
+                        if(thisCity.getName().equals(city)) {
+                            spinnerPosition = i;
+                        }
+                        i++;
+                    }
+                    spinner.setSelection(spinnerPosition);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -133,8 +195,27 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> implements
         } else {
             // download or processing failed
             Log.e(TAG, "onDownloadComplete failed with status " + status);
-            Toast.makeText(getBaseContext(), "There is no city '" + city +"' in the base", Toast.LENGTH_SHORT).show();
+            Snackbar.make(constrLayout, "There is no city '" + city +"' in the base", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            //Toast.makeText(getBaseContext(), "There is no city '" + city +"' in the base", Toast.LENGTH_SHORT).show();
         }
+        progressBar.setVisibility(ProgressBar.INVISIBLE);
+    }
+
+    @Override
+    public void onSupportActionModeStarted(ActionMode mode) {
+
+    }
+
+    @Override
+    public void onSupportActionModeFinished(ActionMode mode) {
+
+    }
+
+    @Nullable
+    @Override
+    public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback) {
+        return null;
     }
 
 }
