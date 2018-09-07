@@ -43,7 +43,6 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>  implement
     ConstraintLayout constrLayout;
     private Toolbar toolbar;
     final Context context = this;
-    EditText cityName;
     TextView textView;
     Spinner spinner;
     ProgressBar progressBar;
@@ -65,7 +64,6 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>  implement
         constrLayout = findViewById(R.id.constrLayout);
         toolbar = findViewById(R.id.my_toolbar);
         delegate.setSupportActionBar(toolbar);
-        cityName = findViewById(R.id.cityName);
         textView = findViewById(R.id.textView);
         progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(ProgressBar.VISIBLE);
